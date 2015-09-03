@@ -268,3 +268,69 @@ workbook对象通过add_worksheet()方法添加一个新的工作表：
 
 ![](http://i.imgur.com/6AVtwTB.png)
 
+扩展程序如下：
+
+    from datetime import datetime
+    import xlsxwriter
+    # Create a workbook and add a worksheet.
+    workbook = xlsxwriter.Workbook('Expenses03.xlsx')
+    worksheet = workbook.add_worksheet()
+    # Add a bold format to use to highlight cells.
+    bold = workbook.add_format({'bold': 1})
+    # Add a number format for cells with money.
+    money_format = workbook.add_format({'num_format': '$#,##0'})
+    # Add an Excel date format.
+    date_format = workbook.add_format({'num_format': 'mmmm d yyyy'})
+    # Adjust the column width.
+    worksheet.set_column(1, 1, 15)
+    # Write some data headers.
+    worksheet.write('A1', 'Item', bold)
+    worksheet.write('B1', 'Date', bold)
+    worksheet.write('C1', 'Cost', bold)
+    # Some data we want to write to the worksheet.
+    expenses = (
+    ['Rent', '2013-01-13', 1000],
+    ['Gas', '2013-01-14', 100],
+    ['Food', '2013-01-16', 300],
+    ['Gym', '2013-01-20', 50],
+    )
+    # Start from the first cell below the headers.
+    row = 1
+    col = 0
+    for item, date_str, cost in (expenses):
+    # Convert the date string into a datetime object.
+    date = datetime.strptime(date_str, "%Y-%m-%d")
+    worksheet.write_string (row, col, item )
+    worksheet.write_datetime(row, col + 1, date, date_format )
+    worksheet.write_number (row, col + 2, cost, money_format)
+    row += 1
+    # Write a total using a formula.
+    worksheet.write(row, 0, 'Total', bold)
+    worksheet.write(row, 2, '=SUM(C2:C5)', money_format)
+    workbook.close()
+    
+此程序主要添加了一个新的格式对象（date）和额外处理数据的类型方法。
+
+Excel处理不同类型的输入数据，如字符串和数字，虽然它是不同的，但一般都是对用户显示。xlsxwriter试图通过Python的映射来效仿这一工作表中的write()方法获得Excel的支持。
+
+write()的具体方法实现如下：
+
+    • write_string()
+    • write_number()
+    • write_blank()
+    • write_formula()
+    • write_datetime()
+    • write_boolean()
+    • write_url()
+   
+此版本，我们通过具体的write_方法来实现数据类型：
+
+    worksheet.write_string (row, col, item )
+    worksheet.write_datetime(row, col + 1, date, date_format )
+    worksheet.write_number (row, col + 2, cost, money_format)
+
+这主要是为了表明，如果你需要更多的控制类型的数据到你的工作表，你可以用适当的方法。使用简化的write()方法，同样可以工作的很好。
+
+日期的处理也是新加入的程序。
+
+在Excel中的日期和时间都是浮点数，有一个数字格式适用于显示它们以正确的格式。如果日期和时间xlsxwriter使得Python DateTime对象所需数量自动转换。但是，我们也需要添加数字格式
